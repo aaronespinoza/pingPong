@@ -4,6 +4,7 @@
 	<title>Ping Pong Game</title>
 	<style> canvas {position:fixed; width: 100%; height: 100%;} </style>
 	<link href="style.css" rel="stylesheet" type="text/css">
+	<script> src="https://kit.fontawesome.com/26d4a64054.js"</script>
 </head>
 <body>
 	<canvas id="canvas" width="800" height="400"></canvas>
@@ -16,59 +17,84 @@
 		let HEIGHT=canvas.height;
 		let rightScore=0;
 		let leftScore=0;
-		
+		let hitEmoji="🤠";
+		let difficulty= 4
+		let normal= 4
+		let hard= 7
+		let randomX;
+		let randomY;
+		const centerXSpace= WIDTH/3
+		const centerYSpace= 100
+		const centerXDiff= WIDTH/2.9
+		const centerYDiff= 120
+
+		function globalVariables() {
+
+			let pong = app.getNode("ball");
+			let leftPlayer = app.getNode("left-player");
+			let rightPlayer = app.getNode("right-player");
+
+        return (vars = [pong, leftPlayer, rightPlayer]);
+      	}
+
 		app.onInit = function(){
 			this.canvas=document.getElementById("canvas");
+			let centerXLeft = 32
+			let centerXRight = 22
+			let centerY = 35
+			let paddleW= 0.01
+			let paddleH= 0.2
+			let paddleMoveDistance= 41
+			posOrNegX();
+			posOrNegY();
+			
 			
 			this.nodes.push({
 				id:"left-player",
-				x: (this.canvas.width / 32),
-				y: (this.canvas.height / 2) - 35,
-				width: canvas.width * 0.01,
-				height: canvas.height * 0.2,
+				x: (this.canvas.width / centerXLeft),
+				y: (this.canvas.height / 2) - centerY,
+				width: canvas.width * paddleW,
+				height: canvas.height * paddleH,
 				color: "#39FF14",
 			});
 
 			this.nodes.push({
 				id: "right-player",
-				x: this.canvas.width - (this.canvas.width / 22),
-				y: (this.canvas.height / 2) - 35,
-				width: canvas.width * 0.01,
-				height: canvas.height * 0.2,
+				x: this.canvas.width - (this.canvas.width / centerXRight),
+				y: (this.canvas.height / 2) - centerY,
+				width: canvas.width * paddleW,
+				height: canvas.height * paddleH,
 				color: "#39FF14",
 			});
+
 			this.nodes.push({
 				id: "ball",
 				x: canvas.width / 2,
 				y: canvas.height / 2,
 				width: this.getNode("left-player").width,
 				height: this.getNode("left-player").width,
-				color: "#39FF14",
-				xDirSpeed: (4*posOrNeg()),
-				yDirSpeed: (4*posOrNeg()),
-
+				color: "transparent",
+				xDirSpeed: (difficulty*randomX),
+				yDirSpeed: (difficulty*randomY),
+			
 			});
-
+			
 
 		document.addEventListener("keydown", (e) => {
 				
 				if(e.keyCode==87 && pause==false){
-					this.getNode("left-player").y -= 41;
-				
+					this.getNode("left-player").y -= paddleMoveDistance;
 				}if(e.keyCode==83 && pause==false){
-					this.getNode("left-player").y += 41;
-
+					this.getNode("left-player").y += paddleMoveDistance;
 				}if(e.keyCode==38 && pause==false){
-					this.getNode("right-player").y -= 41;
-
+					this.getNode("right-player").y -= paddleMoveDistance;
 				}if(e.keyCode==40 && pause==false){
-					this.getNode("right-player").y += 41;
-
+					this.getNode("right-player").y += paddleMoveDistance;
 				}if(e.keyCode==32){
 					app.pause();
-				
+				}if(e.keyCode==81 ){
+					app.toggleDifficulty();
 				}
-				
         });
 
 		app.pause= function(){
@@ -78,17 +104,29 @@
 			}else if(pause==true){
 				pause=false;
 			}
+		};
 
+		app.toggleDifficulty= function(){
+			[pong] = globalVariables();
+			console.log(randomX,randomY)
+			if(difficulty==normal){
+				difficulty= hard
+				pong.xDirSpeed=hard*randomX;
+				pong.yDirSpeed=hard*randomY;
+			}else if(difficulty==hard){
+				difficulty= normal
+				pong.xDirSpeed=normal*randomX;
+				pong.yDirSpeed=normal*randomY;
+			}
 		};
 
 		app.restart=function(){
-				this.getNode("ball").x = canvas.width/2
-				this.getNode("ball").y = canvas.height/2
-				
+			[pong] = globalVariables();
+				pong.x = WIDTH/2
+				pong.y = HEIGHT/2
 		};
 
-
-		function posOrNeg(){
+		function posOrNegX(){
 			var ent = (Math.floor(Math.random() * 2)+1)
 			if (ent == 2){
 				ent = -1
@@ -96,7 +134,18 @@
 			if (ent == 1){
 				ent = 1
 			}
-			return(ent)
+			randomX = ent
+		};
+
+		function posOrNegY(){
+			var ent = (Math.floor(Math.random() * 2)+1)
+			if (ent == 2){
+				ent = -1
+			}
+			if (ent == 1){
+				ent = 1
+			}
+			randomY= ent
 		};
 
 		app.drawLScore= function(){
@@ -111,68 +160,128 @@
 			this.context.fillText(rightScore,WIDTH/2+WIDTH/25,HEIGHT/7 );
 		};
 
+		app.drawEmoji= function(){
+			[pong, leftPlayer] = globalVariables();
+			this.context.fillStyle= "blue";
+			this.context.font = leftPlayer.width*2+"px Arial";
+			this.context.fillText(hitEmoji, pong.x, pong.y );
+		};
 
+		app.drawSpace= function(){
+			[pong, leftPlayer] = globalVariables();
+			this.context.fillStyle= "#39FF14";
+			this.context.font = leftPlayer.width*2+"px Arial";
+			this.context.fillText(" [Space] to start/Pause/Unpause game ", centerXSpace, centerYSpace );
+		};
 
-		app.bumper= function() {
-			this.getNode('ball').x+=this.getNode('ball').xDirSpeed;
+		app.drawDifficulty= function(){
+			[pong, leftPlayer] = globalVariables();
+			this.context.fillStyle= "#39FF14";
+			this.context.font = leftPlayer.width*2+"px Arial";
+			this.context.fillText("[q] to toggle difficulty to hard/normal  ", centerXDiff, centerYDiff );
+		};
 
-			this.getNode('ball').y+=this.getNode('ball').yDirSpeed;
-
-			if (this.getNode("ball").y <0) { 
-			this.getNode("ball").yDirSpeed *= -1;
-			} 
-			if ((this.getNode("ball").y > HEIGHT- this.getNode("ball").height)) { 
-			this.getNode("ball").yDirSpeed *= -1;
+		app.drawAll= function(){
+			this.drawLScore();
+			this.drawRScore();
+			this.drawEmoji();
+			if(pause==true){
+				this.drawSpace();
+				this.drawDifficulty();
 			}
-			//Paddle Bounds
-			if(this.getNode("left-player").y <= 0){
-				this.getNode("left-player").y = 0;
-			}else if(this.getNode("left-player").y >= HEIGHT - this.getNode("left-player").height){
-				this.getNode("left-player").y = HEIGHT - this.getNode("left-player").height
-			}
-			if(this.getNode("right-player").y <= 0){
-				this.getNode("right-player").y = 0;
-			}else if(this.getNode("right-player").y>= HEIGHT - this.getNode("right-player").height){
-				this.getNode("right-player").y = HEIGHT - this.getNode("right-player").height
-			}
-			
-			//Paddle Collissions
-			//Left player Paddle
-			if ( this.getNode("ball").x - this.getNode("ball").width <= this.getNode("left-player").x 
-			&& this.getNode("ball").y - (this.getNode("ball").height/2)<= this.getNode("left-player").y + (this.getNode("left-player").height)
-			&& this.getNode("ball").y + (this.getNode("ball").height/2)>= this.getNode("left-player").y ) { 
-			//console.log("hit");
-			this.getNode("ball").xDirSpeed *= -1;
+		}
+
+		app.moveBall= function(pong){
+			pong.x+=pong.xDirSpeed;
+			pong.y+=pong.yDirSpeed;
+		}
+
+		app.topBottomBorder= function(pong){
+			if (pong.y <0) { 
+			pong.yDirSpeed *= -1;
+			randomY*= -1;
+			hitEmoji="😇"
 			} 
-			//Right player Paddle
-			if ( this.getNode("ball").x + this.getNode("ball").width >= this.getNode("right-player").x 
-			&& this.getNode("ball").y - (this.getNode("ball").height/2)<= this.getNode("right-player").y + (this.getNode("right-player").height)
-			&& this.getNode("ball").y + (this.getNode("ball").height/2)>= this.getNode("right-player").y) { 
-			//console.log("hit");
-			this.getNode("ball").xDirSpeed *= -1;
+			if ((pong.y > HEIGHT- pong.height)) { 
+			pong.yDirSpeed *= -1;
+			randomY*= -1;
+			hitEmoji="👹"
+			}
+		}
+
+		app.paddleBounds= function(leftPlayer, rightPlayer){
+			if(leftPlayer.y <= 0){
+				leftPlayer.y = 0;
+			}else if(leftPlayer.y >= HEIGHT - leftPlayer.height){
+				leftPlayer.y = HEIGHT - leftPlayer.height
+			}
+			if(rightPlayer.y <= 0){
+				rightPlayer.y = 0;
+			}else if(rightPlayer.y>= HEIGHT - rightPlayer.height){
+				rightPlayer.y = HEIGHT - rightPlayer.height
+			}
+		}
+
+		app.leftPaddleCollisions= function(pong, leftPlayer){
+			if ( pong.x - pong.width <= leftPlayer.x 
+			&& pong.y - (pong.height/2)<= leftPlayer.y + (leftPlayer.height)
+			&& pong.y + (pong.height/2)>= leftPlayer.y ) { 
+			pong.xDirSpeed *= -1;
+			randomX*= -1;
+			hitEmoji="🦸‍♀️"
 			} 
-			//Scoring conditions
-			if (this.getNode("ball").x < 0) {
+		}
+
+		app.rightPaddleCollisions= function(pong, rightPlayer){
+			if ( pong.x + pong.width >= rightPlayer.x 
+			&& pong.y - (pong.height/2)<= rightPlayer.y + (rightPlayer.height)
+			&& pong.y + (pong.height/2)>= rightPlayer.y) { 
+			pong.xDirSpeed *= -1;
+			randomX*= -1;
+			hitEmoji="🦹‍♂️"
+			} 
+		}
+
+		app.scoringConditions= function() {
+			if (pong.x < 0) {
 			rightScore++
+			hitEmoji="💥"
             console.log("Right Player Score: "+rightScore);
 			app.restart();
-        	} else if (this.getNode("ball").x + this.getNode("ball").width > WIDTH) {
+
+        	} else if (pong.x + pong.width > WIDTH) {
 			leftScore++
+			hitEmoji="💥"
             console.log('Left Player Score:'+leftScore);
 			app.restart();
         	}
+		}
+
+		app.bumper= function() {
+			[pong, leftPlayer, rightPlayer] = globalVariables();
+
+			this.moveBall(pong);
+
+			this.topBottomBorder(pong);
+
+			this.paddleBounds(leftPlayer, rightPlayer);
+
+			this.leftPaddleCollisions(pong, leftPlayer);
+
+			this.rightPaddleCollisions(pong, rightPlayer);
+
+			this.scoringConditions(pong);
 			
 		};
 		
  
 		app.onUpdate = function(time){
 
+		[pong, leftPlayer, rightPlayer] = globalVariables();
 		if(pause==false){
 			this.bumper()
 		}
-		this.drawLScore();
-		this.drawRScore();
-
+		this.drawAll();
 		};
 
 	};
