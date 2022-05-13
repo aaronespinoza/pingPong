@@ -27,6 +27,9 @@
 		const centerYSpace= 100
 		const centerXDiff= WIDTH/2.9
 		const centerYDiff= 120
+		const centerLScoreX= WIDTH/2-WIDTH/14
+		const centerRScoreX= WIDTH/2+WIDTH/25
+		const centerScoreY= HEIGHT/7
 
 		function globalVariables() {
 
@@ -151,13 +154,13 @@
 		app.drawLScore= function(){
 			this.context.fillStyle= "#39FF14";
 			this.context.font = "45px Arial";
-			this.context.fillText(leftScore,WIDTH/2-WIDTH/14, HEIGHT/7 );
+			this.context.fillText(leftScore,centerLScoreX, centerScoreY );
 		};
 
 		app.drawRScore= function(){
 			this.context.fillStyle= "#39FF14";
 			this.context.font = "45px Arial";
-			this.context.fillText(rightScore,WIDTH/2+WIDTH/25,HEIGHT/7 );
+			this.context.fillText(rightScore,centerRScoreX,centerScoreY );
 		};
 
 		app.drawEmoji= function(){
